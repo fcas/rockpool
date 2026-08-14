@@ -5,7 +5,7 @@ Helper function used to check board version and import matching packages.
 from typing import Tuple, List
 from types import ModuleType
 
-from pkg_resources import parse_version
+from packaging.version import parse as parse_version
 
 import samna
 
@@ -39,26 +39,13 @@ def find_xylo_hdks() -> Tuple[List["XyloHDK"], List[ModuleType], List[str]]:
                 )
 
             print(
-                "The connected Xylo HDK contains a Xylo Audio v2 (SYNS61201). Importing `rockpool.devices.xylo.syns61201`"
+                "The connected Xylo HDK contains a XyloAudio v2 (SYNS61201). Importing `rockpool.devices.xylo.syns61201`"
             )
             import rockpool.devices.xylo.syns61201 as x2
 
             xylo_hdks.append(dev)
             xylo_support_modules.append(x2)
             xylo_versions.append("syns61201")
-
-        elif (
-            d.device_type_name == "XyloDevKit" or d.device_type_name == "XyloTestBoard"
-        ):
-            print(
-                "The connected Xylo HDK contains a Xylo SNN core (SYNS61300). Importing `rockpool.devices.xylo.syns61300`"
-            )
-
-            import rockpool.devices.xylo.syns61300 as x1
-
-            xylo_hdks.append(samna.device.open_device(d))
-            xylo_support_modules.append(x1)
-            xylo_versions.append("syns61300")
 
         elif d.device_type_name == "XyloImuTestBoard":
             dev = samna.device.open_device(d)
@@ -69,13 +56,30 @@ def find_xylo_hdks() -> Tuple[List["XyloHDK"], List[ModuleType], List[str]]:
                 )
 
             print(
-                "The connected Xylo HDK contains a Xylo IMU. Importing `rockpool.devices.xylo.syns63300`"
+                "The connected Xylo HDK contains a XyloIMU. Importing `rockpool.devices.xylo.syns63300`"
             )
             import rockpool.devices.xylo.syns63300 as imu
 
             xylo_hdks.append(dev)
             xylo_support_modules.append(imu)
             xylo_versions.append("syns63300")
+
+        elif d.device_type_name == "XyloAudio3TestBoard":
+            dev = samna.device.open_device(d)
+
+            if not check_firmware_versions(dev, "0.12.2", "1.6.0"):
+                raise ValueError(
+                    "The firmware of the connected Xylo HDK is unsupported, and must be upgraded."
+                )
+
+            print(
+                "The connected Xylo HDK contains a XyloAudio 3. Importing `rockpool.devices.xylo.syns65302`"
+            )
+            import rockpool.devices.xylo.syns65302 as a3
+
+            xylo_hdks.append(dev)
+            xylo_support_modules.append(a3)
+            xylo_versions.append("syns65302")
 
     return xylo_hdks, xylo_support_modules, xylo_versions
 

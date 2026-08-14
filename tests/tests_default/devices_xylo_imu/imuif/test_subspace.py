@@ -1,4 +1,7 @@
 def test_import():
+    import pytest
+
+    pytest.importorskip("samna")
     from rockpool.devices.xylo.syns63300.imuif.rotation import SubSpace
 
     assert SubSpace is not None
@@ -6,6 +9,9 @@ def test_import():
 
 def test_subspace():
     # required packages
+    import pytest
+
+    pytest.importorskip("samna")
     import numpy as np
     from numpy.testing import assert_allclose
     from scipy.signal import lfilter
@@ -20,6 +26,8 @@ def test_subspace():
     amp = 1.0
     T = 1000
     gravity = 10
+
+    np.random.seed(1)
 
     phases = np.random.rand(3) * 2 * np.pi
     base = np.sin(2 * np.pi * phase / r_sampling * np.arange(T))

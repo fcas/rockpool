@@ -1,7 +1,6 @@
 """
-Utilities for producing a samna HW configuration for Xylo IMU devices
+Samna-backed bridge to Xylo dev kit for SYNS63300 Xylo IMU
 """
-
 
 import numpy as np
 import samna
@@ -17,6 +16,7 @@ from .xylo_imu_devkit_utils import XyloIMUHDK
 from typing import Optional, Union, Callable, List, Tuple
 from warnings import warn
 
+import time
 
 try:
     from rich import print
@@ -90,8 +90,14 @@ def config_from_specification(
         raise ValueError("Output weights must be 2 dimensional `(Nhidden, Nout)`")
 
     # - Get network shape
+    if weights_in.ndim < 3:
+        weights_in = np.expand_dims(weights_in, -1)
     Nin, NIEN, Nsyn = weights_in.shape
+
+    if weights_rec.ndim < 3:
+        weights_rec = np.expand_dims(weights_rec, -1)
     Nhidden, _, Nsyn = weights_rec.shape
+
     NOEN, Nout = weights_out.shape
 
     # - Check number of input synapses
@@ -388,6 +394,7 @@ class XyloSamna(Module):
         """ float: Simulation time-step of the module, in seconds """
 
         # - Set power measurement module
+        self._power_frequency = power_frequency
         self._power_buf, self.power = hdkutils.set_power_measure(
             self._device, power_frequency
         )
@@ -510,22 +517,28 @@ class XyloSamna(Module):
         self._read_buffer.get_events()
 
         # - Clear the power recording buffer, if recording power
-        self._power_buf.clear_events()
+        if record_power:
+            self._power_buf.clear_events()
+            # Start power measurement in case is not active yet
+            if not self.power.is_auto_power_measurement_active():
+                self.power.start_auto_power_measurement(self._power_frequency)
+
+        # - Determine a reasonable read timeout
+        if read_timeout is None:
+            read_timeout = len(input) * Nhidden / 100.0
+            read_timeout = read_timeout * 100.0 if record else read_timeout
 
         # - Write the events and trigger the simulation
         self._write_buffer.write(input_events_list)
 
-        # - Determine a reasonable read timeout
-        if read_timeout is None:
-            read_timeout = 2 * len(input) * self.dt * Nhidden / 100.0
-            read_timeout = read_timeout * 30.0 if record else read_timeout
-
         # - Wait until the simulation is finished
+        start_time = time.time()
         read_events, is_timeout = hdkutils.blocking_read(
             self._read_buffer,
             timeout=max(read_timeout, 1.0),
             target_timestep=final_timestep,
         )
+        inf_duration = time.time() - start_time
 
         if is_timeout:
             message = f"Processing didn't finish for {read_timeout}s. Read {len(read_events)} events"
@@ -546,6 +559,19 @@ class XyloSamna(Module):
             final_timestep,
         )
 
+        if record:
+            rec_dict = {
+                "Vmem": np.array(xylo_data.V_mem_hid),
+                "Isyn": np.array(xylo_data.I_syn_hid),
+                "Spikes": np.array(xylo_data.Spikes_hid),
+                "Vmem_out": np.array(xylo_data.V_mem_out),
+                "Isyn_out": np.array(xylo_data.I_syn_out),
+                "times": np.arange(start_timestep, final_timestep + 1),
+                "inf_duration": inf_duration,
+            }
+        else:
+            rec_dict = {}
+
         if record_power:
             # - Get all recent power events from the power measurement
             ps = self._power_buf.get_events()
@@ -557,26 +583,17 @@ class XyloSamna(Module):
                 [e.value for e in ps if e.channel == int(channels.Core)]
             )
 
-        if record:
-            rec_dict = {
-                "Vmem": np.array(xylo_data.V_mem_hid),
-                "Isyn": np.array(xylo_data.I_syn_hid),
-                "Spikes": np.array(xylo_data.Spikes_hid),
-                "Vmem_out": np.array(xylo_data.V_mem_out),
-                "Isyn_out": np.array(xylo_data.I_syn_out),
-                "times": np.arange(start_timestep, final_timestep + 1),
-            }
-        else:
-            rec_dict = {}
-
-        # - Return power recordings if requested
-        if record_power:
             rec_dict.update(
                 {
                     "io_power": io_power,
                     "core_power": core_power,
+                    "inf_duration": inf_duration,
                 }
             )
+
+            # stop power measurement at the end of evolve
+            if self.power.is_auto_power_measurement_active():
+                self.power.stop_auto_power_measurement()
 
         # - This module holds no state
         new_state = {}

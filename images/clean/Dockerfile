@@ -1,5 +1,5 @@
-# Start from a base image with cuda support (driver 525)
-FROM nvidia/cuda:11.8.0-devel-ubuntu22.04
+# Start from a base image with cuda support (driver 580)
+FROM nvidia/cuda:12.8.1-cudnn-devel-ubuntu24.04
 
 # - Set CUDA environment
 ENV CUDA_HOME=/usr/local/cuda
@@ -19,23 +19,24 @@ RUN apt-get clean && \
     apt-get install --no-install-recommends -y libgl1-mesa-glx libegl1-mesa libxrandr2 libxrandr2 libxss1 libxcursor1 libxcomposite1 libasound2 libxi6 libxtst6 && \
     apt-get install --no-install-recommends -y wget git ninja-build && \
     apt-get install --no-install-recommends -y pandoc && \
+    apt-get install software-properties-common -y && \
+    add-apt-repository ppa:deadsnakes/ppa -y && \
+    apt-get update && \
+    apt-get install -y python3.12-full python3-pip && \
+    apt-get install -y python-is-python3 && \
+    apt-get install -y python3-tk && \
+    apt-get install -y python3.12-dev && \
+    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 1 && \
+    python3 -m ensurepip --upgrade && \
+    pip install --upgrade setuptools[core] && \
     rm -rf /var/lib/apt/lists/*
 
-# Install miniconda
-ENV CONDA_DIR $HOME/miniconda
-ENV PATH=$CONDA_DIR/bin:$PATH
-
-RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh && \
-    bash ~/miniconda.sh -b -p $CONDA_DIR && \
-    eval "$(/root/miniconda/bin/conda shell.bash hook)" && conda init
-
 # Copy the requirements file for Rockpool
-COPY ./resources/clean.yml ./
+COPY ./resources/requirements.txt ./
 
 # Update the python environment
-RUN conda update --all && \
-    conda env update --name base --file clean.yml && \
-    rm -rf clean.yml
+RUN pip install -r requirements.txt && \
+    rm -f requirements.txt
 
 ENV CUDA_HOME=/usr/local/cuda
 

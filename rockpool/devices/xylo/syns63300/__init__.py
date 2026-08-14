@@ -1,5 +1,5 @@
 """
-Package to support the Xylo HW SYNS63300 (Xylo™ IMU)
+Package to support the Xylo HW SYNS63300 (Xylo™IMU)
 
 Defines the Rockpool modules :py:class:`~.syns63300.XyloIMUMonitor`, :py:class:`~.syns63300.XyloSamna`, :py:class:`~.syns63300.XyloIMUMonitor`, :py:class:`~.syns63300.IMUIFSim`, :py:class:`~.syns63300.IMUIFSamna`, :py:class:`~.syns63300.IMUData`.
 
@@ -8,7 +8,6 @@ Defines the configuration function :py:func:`~.syns63300.config_from_specificati
 
 Defines the subpackage :py:mod:`.xylo_imu_devkit_utils`.
 """
-
 
 from rockpool.utilities.backend_management import (
     backend_available,
@@ -34,6 +33,7 @@ try:
     from .imu_monitor import *
     from .imuif_sim import *
     from .imuif_samna import *
+    from .power_cycles_model import cycles_model, est_clock_freq
 except:
     if not backend_available("samna"):
         XyloSamna = missing_backend_shim("XyloSamna", "samna")
@@ -45,5 +45,7 @@ except:
         )
         save_config = missing_backend_shim("save_config", "samna")
         load_config = missing_backend_shim("load_config", "samna")
+        cycles_model = missing_backend_shim("cycles_model", "samna")
+        est_clock_freq = missing_backend_shim("est_clock_freq", "samna")
     else:
         raise

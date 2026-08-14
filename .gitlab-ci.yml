@@ -9,6 +9,7 @@ stages:
   - build
   - deploy
 
+
 black-check:
   stage: preliminaries
   needs: []
@@ -38,8 +39,9 @@ unit_tests_clean:
 
   before_script:
     - pip install --upgrade pip
+    - pip install torch torchvision --index-url https://download.pytorch.org/whl/cu126
+    - pip install --upgrade samna
     - pip install --upgrade ".[all]" --no-cache-dir
-    - python -c 'import samna'
     - pip install --upgrade sinabs-exodus --no-cache-dir || exit_code=$?
     - if [ $exit_code -ne 0 ]; then echo "Exodus could not be installed"; fi;
 
@@ -55,14 +57,10 @@ unit_tests_known_good:
   # parallel: 4
 
   before_script:
-    - pip install --upgrade pip
-    - pip install --upgrade ".[all]" --no-cache-dir
-    - pip install --upgrade sinabs-exodus --no-cache-dir || exit_code=$?
-    - pip install pytest pytest-cov
-    - if [ $exit_code -ne 0 ]; then echo "Exodus could not be installed"; fi;
+    - pip install ".[all]" --no-cache-dir
 
   script:
-    - pytest --cov --cov-report term --cov-report xml:coverage.xml -v tests/tests_default --random-order --junitxml="test_report.xml" #--test-group-count $CI_NODE_TOTAL --test-group=$CI_NODE_INDEX 
+    - pytest --cov=tests/tests_default --cov-report term --cov-report xml:coverage.xml -v tests/tests_default --random-order --junitxml="test_report.xml"
 
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
@@ -78,23 +76,23 @@ unit_tests_known_good:
 
 documentation_linting:
   stage: docs
+  image: "registry.gitlab.com/synsense/rockpool/known_good:latest"
   allow_failure: true
   needs: []
   before_script:
     - pip install --upgrade pip
     - pip install --upgrade ".[all]" --no-cache-dir
-    - python -c 'import samna'
 
   script:
     - sphinx-build -n -b dummy docs docs/_build/html
 
 docs_build:
   stage: docs
+  image: "registry.gitlab.com/synsense/rockpool/known_good:latest"
   allow_failure: true
   before_script:
     - pip install --upgrade pip
     - pip install ".[all]" --no-cache-dir
-    - python -c 'import samna'
 
   script:
     - cp CHANGELOG.md docs/advanced

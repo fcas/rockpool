@@ -54,30 +54,37 @@ and evaluating recurrent networks, which can operate both with continuous-time d
 
    tutorials/rockpool-shd.ipynb
    tutorials/wavesense_training.ipynb
-   
-   .. tutorials/building_reservoir.ipynb
-   .. tutorials/deneve_reservoirs.ipynb
-   .. tutorials/network_ads_tutorial.ipynb
 
+   tutorials/synnet/synnet_architecture.ipynb
 
 .. toctree::
    :maxdepth: 1
    :caption: Xylo™ inference processors
 
    devices/xylo-overview.ipynb
+   devices/quick-xylo/xylo-audio-intro.ipynb
    devices/quick-xylo/deploy_to_xylo.ipynb
+   devices/quick-xylo/xylo-audio-power.ipynb
    devices/torch-training-spiking-for-xylo.ipynb
 
 .. toctree::
    :maxdepth: 1
-   :caption: Xylo™ Audio
+   :caption: Xylo™Audio 2
 
-   devices/quick-xylo/xylo-audio-2-intro.ipynb
    devices/analog-frontend-example.ipynb
 
 .. toctree::
    :maxdepth: 1
-   :caption: Xylo™ IMU
+   :caption: Xylo™Audio 3
+
+   devices/xylo-a3/xylo-audio3-intro.ipynb
+   devices/xylo-a3/AFESim3_as_transform.ipynb
+   devices/xylo-a3/Using_XyloSamna_and_XyloMonitor.ipynb
+   devices/xylo-a3/configure_BPF.ipynb
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Xylo™IMU
 
    devices/xylo-imu/xylo-imu-intro.ipynb
    devices/xylo-imu/imu-if.ipynb
@@ -98,6 +105,7 @@ and evaluating recurrent networks, which can operate both with continuous-time d
 
    advanced/graph_overview.ipynb
    advanced/graph_mapping.ipynb
+   advanced/nir_export_import.ipynb
    reference/params_types.ipynb
    reference/lif-benchmarks.ipynb
    reference/api

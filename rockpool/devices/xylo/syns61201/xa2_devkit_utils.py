@@ -498,7 +498,7 @@ def blocking_read(
 
             if timestamps:
                 reached_timestamp = timestamps[-1] >= target_timestamp
-                continue_read &= ~reached_timestamp
+                continue_read &= not (reached_timestamp)
 
         # - Check timeout
         if timeout:
@@ -1660,7 +1660,8 @@ def set_power_measure(
     power_buf = samna.BasicSinkNode_unifirm_modules_events_measurement()
     graph = samna.graph.EventFilterGraph()
     graph.sequential([power_monitor.get_source_node(), power_buf])
-    power_monitor.start_auto_power_measurement(frequency)
+    if not power_monitor.is_auto_power_measurement_active():
+        power_monitor.start_auto_power_measurement(frequency)
     return power_buf, power_monitor
 
 
@@ -1908,8 +1909,18 @@ def set_xylo_core_clock_freq(device: XyloA2HDK, desired_freq_MHz: float) -> floa
     wait_period = int(round(100 / desired_freq_MHz) / 2 - 1)
     actual_freq = 100 / (2 * (wait_period + 1))
 
-    # - Configure device
-    device.get_io_module().write_config(0x0021, wait_period)
+    saer_freq = int(actual_freq * 1e6 / 4)
+    spi_freq = int(actual_freq * 1e6 / 8)
+
+    # - Configure main clock device
+    device.get_io_module().write_config(0x0020, wait_period >> 16)
+    device.get_io_module().write_config(0x0021, wait_period & 0xFFFF)
+
+    # - Set SAER clock frequency to 1/4 master clock freq
+    device.get_io_module().set_saer_clk_rate(saer_freq)
+
+    # - Set SPI clock frequency to 1/16 master clock freq
+    device.get_io_module().set_spi_clk_rate(spi_freq)
 
     # - Return actual obtained clock freq.
     return actual_freq
@@ -2128,3 +2139,17 @@ def read_all_xylo_register(
     for address in range(0x33):
         data = read_register(read_buffer, write_buffer, address)[0]
         print("read xylo register ", hex(address), hex(data))
+
+
+def num_buffer_neurons(Nhidden: int) -> int:
+    """
+    Number of buffer neurons required for this network on Xylo 1
+
+    Args:
+        Nhidden (int): Number of hidden layer neurons
+
+    Returns:
+        int: The number of buffer neurons
+    """
+    Nbuffer = 2 if Nhidden % 2 == 1 else 1
+    return Nbuffer

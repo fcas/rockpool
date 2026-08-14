@@ -1,21 +1,168 @@
 # Change log
 
-All notable changes between Rockpool releases will be documented in this file.
+All notable changes between Rockpool releases will be documented in this file
 
-## Unreleased
+## [Unreleased]
 
 ### Added
 
+* More detailed description about power measurement in XyloAudio 3.
+* Add missing implementation for use of the second synapses in XyloAudio 3. Implementation was incomplete in the front-end.
+
 ### Changed
+### Fixed
+
+* pkg_resources was removed from setuptools>=82, fix Rockpool code to not depend on it anymore. Now using packaging.
+* Update jax.numpy.clip arguments (deprecated a_max, a_min) and uses max, min instead.
+* jax.numpy.fix was deprecated in JAX v0.9.0, and will be removed in JAX v0.10.0. Using jax.numpy.trunc instead.
+
+### Deprecated
+### Removed
+### Security
+
+## [v3.0.5] -- 2026-04-01
+
+### Changed
+
+* Update setup.py file to match the minimum Python requirement for Rockpool: v3.10
 
 ### Fixed
 
+* Fix JAX dependency for Xylo. Absence of JAX library was causing error when using AFESimExternal.
+* Fix update of main clock frequency of XyloAudio 2. Now it also adjust SPI and SAER clocks that are dependent on the main clock.
+
+## [v3.0.4] -- 2026-02-10
+
+### Changed
+
+* XyloMonitor for XyloAudio 2 now has an `auto_calibrate` flag. The autocalibration is performed by default, so old behavior does not change.
+
+### Fixed
+
+* Fix bug on XyloIMU when changing the main clock frequency. Now, other internal clocks of XyloIMU are automatically updated to match constraints among clocks.
+* Fix typo in documentation for XyloIMU
+
+## [v3.0.3] -- 2025-12-17
+
+* Update documentation: now typehint from function descriptions appear also in parameter description automatically
+* Fix bug on timestep count in real-time mode for XyloAudio 2
+* Update documentaion: Add bibtex references for SynSense hardware that can be used with Rockpool
+* Update documentation: fix typos and minor bugs on tutorials for XyloAudio 2 and XyloAudio 3
+* Update documentation on Zenodo
+
+## [v3.0.2] -- 2025-11-04
+
+### Fixed
+
+* Fix bug that was generating NaN values in power measurement if XyloMonitor or XyloSamna classes were initialized in a loop.
+
+## [v3.0.1] -- 2025-10-09
+
+### Changed
+
+* Update release instructions to add logo color information
+* Update functions and methods to be compatible with Python 3l.12 and Numpy >= 2.0
+* Update docker image for CI pipeline
+
+## [v3.0.0.1 hotfix] -- 2025-07-02
+
+### Fixed
+
+* Improve precision of power measurement by start and stop power measurement in evolve call of XyloMonitor/XyloSamna
+
+## [v3.0.0] -- 2025-06-17
+
+### Removed
+
+* Remove support for XyloTestBoard, XyloDevKit and XyloAudio 1, following updates on Samna 0.46.0. This breaks compatibility with old versions.
+
+### Updated
+
+* `as_graph` method of `ahp_lif` module changed to make it compatible with the mapper of XyloAudio 2
+
+### Added
+
+* Add missing audio samples for XyloAudio 3 tutorial `Using XyloSamna and XyloMonitor to deploy a model on XyloAudio 3 HDK`
+
+### Fixed
+
+* Initialization of `XyloSamna` or `XyloMonitor` in a loop was crashing when recording power. 
+
+## [v2.9.2.2 hotfix] -- 2025-05-26
+
+### Fixed
+
+* Restrict max version for samna to prevent unexpected updates breaking Rockpool
+
+## [v2.9.2.1 hotfix] -- 2025-05-09
+
+### Fixed
+
+* Audio Front End using PDM input data was not configured correctly for XyloAudio 3 
+
+## [v2.9.2] -- 2025-04-17
+
+### Added
+* Power measurement for XyloAudio 3
+* AFESamna module for XyloAudio 3: allow recording of input spikes from live microphone
+* Complete set of tutorials for XyloAudio 3
+
+### Fixed
+* Remove dependence of imp module that was deprecated in Python 3.12
+* Fixed bug in multiplying `TSContinuous` objects with differing numbers of channels
+
+## [v2.9.1 hotfix] -- 2024-10-14
+
+### Fixed
+
+* Rockpool package was not generate on conda-forge. Update package build requirements.
+
+## [v2.9] -- 2024-10-11
+
+### Added
+* Support for Xylo™Audio 3 development kit
+  * Hardware interface via samna
+  * Digital microphone input and simulaton package
+  * Cycles model
+  * Simulation support for audio front-end: `AFESimExternal` , `AFESimAGC`, and `AFESimPDM` with all the necessary sub-modules
+* Tutorial and documentation for the ``SynNet`` architecture, to improve visibility
+
+### Changed
+* Update ``release notes`` for developers in documentation
+    * Add check for version
+    * Add check for copyright
+* Update dependency version of Jax to >=0.4.28
+* Move instructions to build documentation inside ``Contributing`` section
+
+## [v2.8] -- 2024-06-24
+
+### Added
+* Add cycles model for Xylo Audio and Xylo IMU, enabling users to calculate the required master clock frequency for Xylo
+* Add support for NIR, for importing and exporting Rockpool torch networks
+
+### Changed
+* `LIFExodus` now supports vectors as threshold parameter
+* Standard `LIF` modules now have `w_rec` as a simulation parameter when in non-recurrent mode
+
+### Fixed
+* `TypeError` when using `LIFExodus`
+* Update `jax.config` usage
+* Power measurement for `xyloA2` was not considering AFE channels
+* Remove `check_grads` from Jax tests, since this will fail for LIF neurons due to surrograte gradients
+* Fix a bug in `AFESim` on windows, where the maximum int32 value would be exceeded when seeding the AFE simulation
+* Fix stochasticity in some unit tests
+* Fix a bug in `channel_quantize`, where quantization would be incorrectly applied for Xylo IMU networks with Nien < Nhid
+* Fix a bug in `channel_quantize`, where hidden unit biases would be incorrectly used in place of output unit biases
+* Fix a non-handled buffer bug in `LIFJax`, where non-recurrent modules would sometimes have garbage in `w_rec` instead of all zeros
+* Fix a bug in `TorchSequential.as_graph()`, where torch module functions would be called instead of rockpool modules, leading to a failing call to `.as_graph()`.
+
 ### Deprecated
+
+* Brian2 tests are not running -- Brian2 backend will be soon removed
 
 ### Removed
 
 ### Security
-
 
 ## [v.2.7.1 hotfix] -- 2024-01-19
 
@@ -23,13 +170,11 @@ All notable changes between Rockpool releases will be documented in this file.
 
 * Bug in Xylo IMU mapper, where networks with more than 128 hidden neurons could not be mapped
 
-
 ## [v2.7] -- 2023-09-25
 
 ### Added
 
-
-* Dependency on `pytest-random-order` v1.1.0 for test order randomization
+* Dependency on `pytest-random-order` v1.1.0 for test order randomization.
 * New HowTo tutorial for performing constrained optimisation with torch and jax
 * Xylo IMU application software support:
 
@@ -41,15 +186,16 @@ All notable changes between Rockpool releases will be documented in this file.
     * `RotationRemoval`
     * `IAFSpikeEncoder`
     * `ScaleSpikeEncoder`
-  * `XyloIMUMonitor` module: Real-time hardware monitoring for Xylo IMU
-  * `XyloSamna` module: Interface to the SNN core
-  * `IMUIFSamna` module: Interface to `IMUIF`, utilizing neurons in the SNN core
-  * `IMUData` module: Collection of sensor data from the onboard IMU sensor
-  * Utility functions for network mapping to the Xylo IMU HDK, interfacing, and data processing
-  * Introductory documentation providing an overview of Xylo IMU and instructions on configuring preprocessing
-* New losses, with structure similar to PyTorch
-  * PeakLoss which can be imported as `peak_loss = rockpool.nn.losses.PeakLoss()`
-  * MSELoss which can be imported as  `mse_loss = rockpool.nn.losses.MSELoss()`
+  * `XyloIMUMonitor` module: Real-time hardware monitoring for Xylo IMU.
+  * `XyloSamna` module: Interface to the SNN core.
+  * `IMUIFSamna` module: Interface to `IMUIF`, utilizing neurons in the SNN core.
+  * `IMUData` module: Collection of sensor data from the onboard IMU sensor.
+  * Utility functions for network mapping to the Xylo IMU HDK, interfacing, and data processing.
+  * Introductory documentation providing an overview of Xylo IMU and instructions on configuring preprocessing.
+* New losses, with structure similar to PyTorch.
+
+  * PeakLoss which can be imported as `peak_loss = rockpool.nn.losses.PeakLoss()`.
+  * MSELoss which can be imported as  `mse_loss = rockpool.nn.losses.MSELoss()`.
 
 ### Changed
 
@@ -103,7 +249,6 @@ All notable changes between Rockpool releases will be documented in this file.
 * Added initial developer documentation
 * Added MNIST tutorial
 * Fixed notebook links to MyBinder.org
-
 
 ### Changed
 

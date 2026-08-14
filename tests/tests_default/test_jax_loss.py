@@ -20,7 +20,7 @@ def test_imports():
     )
 
     # - Ensure that NaNs in compiled functions are errors
-    from jax.config import config
+    from jax import config
 
 
 def test_mse():
@@ -38,7 +38,7 @@ def test_mse():
     from rockpool.training.jax_loss import mse
 
     # - Ensure that NaNs in compiled functions are errors
-    from jax.config import config
+    from jax import config
 
     config.update("jax_debug_nans", True)
 
@@ -65,7 +65,7 @@ def test_mse():
     loss_t = []
     vgf = jit(jax.value_and_grad(loss))
 
-    from tqdm.autonotebook import tqdm
+    from tqdm.auto import tqdm
 
     with tqdm(range(5)) as t:
         for i in t:
@@ -86,16 +86,12 @@ def test_bounds_cost():
     from rockpool.training.jax_loss import bounds_cost, make_bounds
     from rockpool.training.jax_debug import flatten
 
-    from jax.example_libraries.optimizers import adam
-
-    from copy import deepcopy
-
     import jax
     from jax import jit, numpy as jnp
     import numpy as np
 
     # - Ensure that NaNs in compiled functions are errors
-    from jax.config import config
+    from jax import config
 
     config.update("jax_debug_nans", True)
 
@@ -142,7 +138,7 @@ def test_l2sqr_norm():
     from rockpool.training.jax_loss import l2sqr_norm
 
     # - Ensure that NaNs in compiled functions are errors
-    from jax.config import config
+    from jax import config
 
     config.update("jax_debug_nans", True)
 
@@ -190,7 +186,7 @@ def test_softmax():
     import jax
 
     # - Ensure that NaNs in compiled functions are errors
-    from jax.config import config
+    from jax import config
 
     config.update("jax_debug_nans", True)
 
@@ -213,7 +209,7 @@ def test_logsoftmax():
     import jax
 
     # - Ensure that NaNs in compiled functions are errors
-    from jax.config import config
+    from jax import config
 
     config.update("jax_debug_nans", True)
 

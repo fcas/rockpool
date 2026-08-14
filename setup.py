@@ -1,4 +1,3 @@
-from distutils.core import setup
 import setuptools
 
 # - Read version
@@ -34,13 +33,15 @@ setup_args = {
             "torchvision",
         ],
         "jax": [
-            "jax>=0.2.13",
-            "jaxlib>=0.1.66",
+            "jax>=0.4.28",
+            "jaxlib>=0.4.28",
         ],
         "xylo": [
             "xylosim",
-            "samna>=0.30.25.0",
+            "samna>=0.48.6",
             "bitstruct",
+            "rockpool[jax]",
+            "packaging",
         ],
         "exodus": [
             "torch",
@@ -57,13 +58,17 @@ setup_args = {
             "rockpool[jax]",
             "samna>=0.32.1.0",
         ],
+        "nir": [
+            "nir <= 1.0.4",
+            "nirtorch",
+        ],
         "extras": [
             "matplotlib",
             "tqdm",
             "rich",
         ],
         "all": [
-            "rockpool[numba, docs, tests, torch, jax, xylo, brian, sinabs, dynapse, extras]",
+            "rockpool[numba, docs, tests, torch, jax, xylo, brian, sinabs, dynapse, nir, extras]",
         ],
     },
     "description": "A Python package for developing, simulating and training spiking neural networks, and deploying on neuromorphic hardware",
@@ -75,7 +80,7 @@ setup_args = {
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
     ],
     "keywords": "spiking neural network SNN neuromorphic machine learning ML",
-    "python_requires": ">=3.8",
+    "python_requires": ">=3.10",
     "project_urls": {
         "Source Code": "https://github.com/SynSense/rockpool",
         "Documentation": "https://rockpool.ai",
@@ -84,4 +89,4 @@ setup_args = {
     "include_package_data": True,
 }
 
-setup(**setup_args)
+setuptools.setup(**setup_args)

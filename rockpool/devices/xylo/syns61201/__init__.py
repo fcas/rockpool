@@ -1,5 +1,5 @@
 """
-Package to support the Xylo HW SYNS61201 (Xylo™ Audio 2)
+Package to support the Xylo HW SYNS61201 (Xylo™Audio 2)
 
 Defines the Rockpool modules :py:class:`.XyloSim`, :py:class:`.AFESim`, :py:class:`.AFESamna`, :py:class:`.DivisiveNormalisation`, :py:class:`.DivisiveNormalisationNoLFSR`.  
 
@@ -15,8 +15,6 @@ from rockpool.utilities.backend_management import (
     missing_backend_shim,
 )
 
-
-from ..syns65300.afe_sim import *
 from .xylo_graph_modules import *
 
 from .afe_sim_empirical import *
@@ -42,6 +40,7 @@ try:
     from .xa2_devkit_utils import *
     from .xylo_monitor import *
     from .afe_samna import *
+    from .power_cycles_model import cycles_model, est_clock_freq
 except:
     if not backend_available("samna"):
         AFESamna = missing_backend_shim("AFESamna", "samna")
@@ -52,6 +51,8 @@ except:
         )
         save_config = missing_backend_shim("save_config", "samna")
         load_config = missing_backend_shim("load_config", "samna")
+        cycles_model = missing_backend_shim("cycles_model", "samna")
+        est_clock_freq = missing_backend_shim("est_clock_freq", "samna")
     else:
         raise
 

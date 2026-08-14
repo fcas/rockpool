@@ -36,7 +36,7 @@ from typing import Optional, Union, Callable, List, Tuple
 from warnings import warn
 
 try:
-    from tqdm.autonotebook import tqdm
+    from tqdm.auto import tqdm
 except ModuleNotFoundError:
 
     def tqdm(wrapped, *args, **kwargs):
@@ -100,9 +100,7 @@ def config_from_specification(
             f"Input weights must be at least 2 dimensional `(Nin, Nin_res, [2])`. Found {weights_in.shape}"
         )
 
-    enable_isyn2 = True
     if weights_in.ndim == 2:
-        enable_isyn2 = False
         weights_in = np.reshape(weights_in, [*weights_in.shape, 1])
 
     # - Check output weights
@@ -110,8 +108,10 @@ def config_from_specification(
         raise ValueError("Output weights must be 2 dimensional `(Nhidden, Nout)`")
 
     # - Get network shape
-    Nin, Nin_res, _ = weights_in.shape
+    Nin, Nin_res, Nsyn = weights_in.shape
     Nhidden, Nout = weights_out.shape
+
+    enable_isyn2 = Nsyn > 1
 
     # - Check input and hidden weight sizes
     if Nin_res > Nhidden:
@@ -323,7 +323,7 @@ def load_config(filename: str) -> XyloConfiguration:
     return conf
 
 
-class XyloSamna(Module):
+class XyloSamna(Module):  # type: ignore
     """
     A spiking neuron :py:class:`.Module` backed by the Xylo hardware, via `samna`.
 
@@ -332,7 +332,7 @@ class XyloSamna(Module):
     See Also:
 
         See the tutorials :ref:`/devices/xylo-overview.ipynb` and :ref:`/devices/torch-training-spiking-for-xylo.ipynb` for a high-level overview of building and deploying networks for Xylo.
-        See the tutorial :ref:`/devices/quick-xylo/xylo-audio-2-intro.ipynb` for information specific to the Xylo™ Audio 2 dev kit, including power measurement.
+        See the tutorial :ref:`/devices/quick-xylo/xylo-audio-intro.ipynb` for information specific to the Xylo™Audio dev kits, including power measurement.
 
     Note:
 
@@ -571,20 +571,22 @@ class XyloSamna(Module):
         if record_power:
             self._power_buf.get_events()
 
-        # - Write the events and trigger the simulation
-        self._write_buffer.write(input_events_list)
-
         # - Determine a reasonable read timeout
         if read_timeout is None:
             read_timeout = len(input) * self.dt * Nhidden / 100.0
             read_timeout = read_timeout * 100.0 if record else read_timeout
 
+        # - Write the events and trigger the simulation
+        self._write_buffer.write(input_events_list)
+
         # - Read output events from Xylo HDK
+        start_time = time.time()
         read_events, is_timeout = hdkutils.blocking_read(
             self._read_buffer,
             timeout=max(read_timeout, 1.0),
             target_timestamp=final_timestamp,
         )
+        inf_duration = time.time() - start_time
 
         # - Handle a timeout error
         if is_timeout:
@@ -630,6 +632,7 @@ class XyloSamna(Module):
                 "Vmem_out": np.array(xylo_data.V_mem_out),
                 "Isyn_out": np.array(xylo_data.I_syn_out),
                 "times": np.arange(start_timestep, final_timestamp + 1),
+                "inf_duration": inf_duration,
             }
         else:
             rec_dict = {}
@@ -642,6 +645,7 @@ class XyloSamna(Module):
                     "afe_core_power": afe_core_power,
                     "afe_ldo_power": afe_ldo_power,
                     "snn_core_power": snn_core_power,
+                    "inf_duration": inf_duration,
                 }
             )
 

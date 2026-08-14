@@ -147,6 +147,7 @@ Standard networks
     :template: class.rst
 
     nn.networks.WaveSenseNet
+    nn.networks.SynNet
 
 
 Conversion utilities
@@ -199,7 +200,7 @@ Conversion utilities
     transform.torch_transform
 
 
-Xylo hardware support and simulation
+Xylo™ hardware support and simulation
 ------------------------------------
 
 Support modules
@@ -220,9 +221,8 @@ Support modules
     :toctree: _autosummary
     :template: module.rst
 
-    devices.xylo.syns61300
     devices.xylo.syns61201
-    devices.xylo.syns65300
+    devices.xylo.syns65302
     devices.xylo.syns63300
 
 .. autosummary::
@@ -232,8 +232,12 @@ Support modules
     transform.quantize_methods.channel_quantize
 
 
-Xylo Audio support
+Xylo™Audio 2 support
 ~~~~~~~~~~~~~~~~~~~
+
+.. seealso::
+    * :ref:`/devices/quick-xylo/xylo-audio-intro.ipynb`
+
 
 .. autosummary::
     :toctree: _autosummary
@@ -242,6 +246,8 @@ Xylo Audio support
     devices.xylo.syns61201.config_from_specification
     devices.xylo.syns61201.load_config
     devices.xylo.syns61201.save_config
+    devices.xylo.syns61201.cycles_model
+    devices.xylo.syns61201.est_clock_freq
 
 .. autosummary::
     :toctree: _autosummary
@@ -257,8 +263,41 @@ Xylo Audio support
     devices.xylo.syns61201.Xylo2OutputNeurons
 
 
-Xylo IMU support
-~~~~~~~~~~~~~~~~~~~
+Xylo™Audio 3 Support
+~~~~~~~~~~~~~~~~~~~~
+
+.. seealso::
+    * :ref:`/devices/xylo-a3/xylo-audio3-intro.ipynb`
+
+
+.. autosummary::
+    :template: class.rst
+    :toctree: _autosummary
+
+    devices.xylo.syns65302.AFESim
+    devices.xylo.syns65302.AFESimExternal
+    devices.xylo.syns65302.AFESimPDM
+    devices.xylo.syns65302.XyloSim
+    devices.xylo.syns65302.XyloSamna
+    devices.xylo.syns65302.XyloMonitor
+    devices.xylo.syns65302.XyloA3HiddenNeurons
+    devices.xylo.syns65302.XyloA3OutputNeurons
+
+    .. devices.xylo.syns65302.AFESimAGC
+
+.. autosummary::
+    :toctree: _autosummary
+
+    devices.xylo.syns65302.mapper
+    devices.xylo.syns65302.config_from_specification
+    devices.xylo.syns65302.load_config
+    devices.xylo.syns65302.save_config
+    devices.xylo.syns65302.cycles_model
+    devices.xylo.syns65302.est_clock_freq
+
+
+Xylo™IMU support
+~~~~~~~~~~~~~~~~~
 
 .. seealso::
     * :ref:`/devices/xylo-imu/xylo-imu-intro.ipynb`
@@ -270,6 +309,8 @@ Xylo IMU support
     devices.xylo.syns63300.config_from_specification
     devices.xylo.syns63300.load_config
     devices.xylo.syns63300.save_config
+    devices.xylo.syns63300.cycles_model
+    devices.xylo.syns63300.est_clock_freq
 
 .. autosummary::
     :toctree: _autosummary
@@ -455,3 +496,11 @@ General Utilities
     utilities.jax_tree_utils
     utilities.type_handling
 
+NIR import and export
+---------------------
+
+.. autosummary::
+    :toctree: _autosummary
+
+    rockpool.nn.modules.to_nir
+    rockpool.nn.modules.from_nir

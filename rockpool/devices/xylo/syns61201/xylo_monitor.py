@@ -21,7 +21,7 @@ from typing import Optional, Union, Callable, List
 import warnings
 
 try:
-    from tqdm.autonotebook import tqdm
+    from tqdm.auto import tqdm
 except ModuleNotFoundError:
 
     def tqdm(wrapped, *args, **kwargs):
@@ -32,7 +32,7 @@ except ModuleNotFoundError:
 __all__ = ["XyloMonitor"]
 
 
-class XyloMonitor(Module):
+class XyloMonitor(Module):  # type: ignore
     """
     A spiking neuron :py:class:`.Module` backed by the Xylo hardware, via `samna`.
 
@@ -56,6 +56,7 @@ class XyloMonitor(Module):
         calibration_params: Optional[dict] = {},
         read_register: bool = False,
         power_frequency: float = 5.0,
+        auto_calibrate: bool = True,
         *args,
         **kwargs,
     ):
@@ -77,6 +78,8 @@ class XyloMonitor(Module):
             calibration_params (Dict): Specify the calibration parameters.
             read_register (bool): If True, will print all register values of AFE and Xylo after initialization.
             power_frequency (float): The frequency of power measurement. Default: 5.0
+            auto_calibrate (bool): If True, will apply auto-calibration. Defaults to True.
+
         """
 
         # - Check input arguments
@@ -187,14 +190,15 @@ class XyloMonitor(Module):
                 afe_config, change_count
             )
 
-        # - Set up known good AFE configuration
-        print("Configuring AFE...")
-        afe_config = hdkutils.apply_afe2_default_config(
-            afe2hdk=self._device,
-            config=afe_config,
-            **calibration_params,
-        )
-        print("Configured AFE")
+        # - Set up known good AFE configuration if autocalibration is True
+        if auto_calibrate:
+            print("Configuring AFE...")
+            afe_config = hdkutils.apply_afe2_default_config(
+                afe2hdk=self._device,
+                config=afe_config,
+                **calibration_params,
+            )
+            print("Configured AFE")
 
         # - Amplify input volume
         afe_config = hdkutils.config_lna_amplification(afe_config, level=amplify_level)
@@ -296,10 +300,12 @@ class XyloMonitor(Module):
         # - Check `record` flag
         if record:
             raise ValueError(
-                "Recording internal state is not supported by XyloIMUMonitor."
+                "Recording internal state in real-time mode is not permitted by XyloAudio 2."
             )
 
         Nt = input_data.shape[0]
+        # - Get the number of output neurons in the last layer
+        Nout = np.shape(self._config.readout.weights)[1]
         out = []
         count = 0
 
@@ -316,7 +322,11 @@ class XyloMonitor(Module):
 
             if output[0]:
                 self._state_buffer.reset()
-                count += len(output)
+                # - The size of the output should match the number of output neurons
+                # -- Every timestep should have #output_neurons size
+                # -- at the end of this processing if `out` size is not exactly the size of input
+                # -- something is wrong
+                count += len(output) / Nout
                 out.append([sub[-1] for sub in output])
 
         rec_dict = {}
@@ -326,15 +336,23 @@ class XyloMonitor(Module):
             ps = self._power_buf.get_events()
 
             # - Separate out power meaurement events by channel
-            channels = samna.xyloImuBoards.MeasurementChannels
+            channels = samna.xyloA2TestBoard.MeasurementChannels
             io_power = np.array([e.value for e in ps if e.channel == int(channels.Io)])
-            core_power = np.array(
-                [e.value for e in ps if e.channel == int(channels.Core)]
+            AFE_io_power = np.array(
+                [e.value for e in ps if e.channel == int(channels.IoAfe)]
+            )
+            logic_power = np.array(
+                [e.value for e in ps if e.channel == int(channels.Logic)]
+            )
+            AFE_logic_power = np.array(
+                [e.value for e in ps if e.channel == int(channels.LogicAfe)]
             )
             rec_dict.update(
                 {
                     "io_power": io_power,
-                    "core_power": core_power,
+                    "logic_power": logic_power,
+                    "AFE_io_power": AFE_io_power,
+                    "AFE_logic_power": AFE_logic_power,
                 }
             )
 
@@ -342,5 +360,5 @@ class XyloMonitor(Module):
 
     def reset_state(*args, **kwargs):
         raise NotImplementedError(
-            "Reset state is not permitted for Xylo Audio in real-time mode"
+            "Reset state is not permitted for XyloAudio 2 in real-time mode"
         )
